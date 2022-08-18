@@ -6,10 +6,11 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
     public class TypescriptModelGenerator
     {
         private string _directoryPath;
-
-        public TypescriptModelGenerator(string directoryPath)
+        private string _exportFile;
+        public TypescriptModelGenerator(string directoryPath, string exportFile)
         {
             _directoryPath = directoryPath;
+            _exportFile = exportFile;
         }
 
         public async Task Generate(List<ClassDefinitionModel> classModels)
@@ -17,7 +18,7 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
             foreach (var model in classModels)
             {
                 var fileName = model.Name.ToKebabCase();
-                var filePath = $"{_directoryPath}\\{fileName}.ts";
+                var filePath = $"{_directoryPath}/{fileName}.ts";
 
                 var typescriptModel = "Template/TypescriptModel.txt".ToLocalPath().ReadEntireFile();
                 typescriptModel = typescriptModel.Replace("#CLASSNAME#", model.Name);
@@ -30,7 +31,12 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
                     varStr += $"    {variable.Name}: {variable.Type}{(variable.IsArray ? "[]" : "")};{Environment.NewLine}";
                     if (!isKnownType(variable.Type))
                     {
-                        var newImportStr = $"import {{ {variable.Type} }} from './{variable.Type.ToKebabCase()}';";
+                        var newImportStr = string.Empty;
+                        if (variable.Type.EndsWith("Id"))
+                            newImportStr = $"import {{ {variable.Type} }} from '../enums/{variable.Type.ToKebabCase()}';";
+                        else
+                            newImportStr = $"import {{ {variable.Type} }} from './{variable.Type.ToKebabCase()}';";
+
                         if (!importStr.Contains(newImportStr))
                             importStr += newImportStr + Environment.NewLine;
                     }
@@ -44,6 +50,9 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
 
 
                 typescriptModel.WriteToFile(filePath);
+
+                if (!string.IsNullOrWhiteSpace(_exportFile))
+                    $"export * from './lib/models/gen/{fileName}';{Environment.NewLine}".AppendToFile(_exportFile);
             }
         }
 

@@ -7,11 +7,13 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
     {
         private string _directoryPath;
         private string _version;
+        private string _exportFile;
 
-        public TypescriptApiServiceGenerator(string directoryPath, string version)
+        public TypescriptApiServiceGenerator(string directoryPath, string version, string exportFile)
         {
             _directoryPath = directoryPath;
             _version = version;
+            _exportFile = exportFile;
         }
 
         public async Task Generate(List<ApiDefinitionModel> apiModels)
@@ -85,6 +87,9 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
                 typescriptModel = typescriptModel.Replace("#IMPORTS#", importStr);
 
                 typescriptModel.WriteToFile(filePath);
+
+                if (!string.IsNullOrWhiteSpace(_exportFile))
+                    $"export * from './lib/services/gen/api/v{_version}/{fileName}-v{_version}.service';{Environment.NewLine}".AppendToFile(_exportFile);
             }
         }
 
@@ -114,7 +119,13 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
             {
                 var nonArrayType = parameter?.Type.Replace("[]", "");
                 if (!isKnownType(nonArrayType))
-                    return $"import {{ {nonArrayType} }} from '../../../../models/gen/{nonArrayType.ToKebabCase()}';{Environment.NewLine}";
+                {
+                    //All complex objects that end with Id are Enums
+                    if (nonArrayType.EndsWith("Id"))
+                        return $"import {{ {nonArrayType} }} from '../../../../models/enums/{nonArrayType.ToKebabCase()}';{Environment.NewLine}";
+                    else
+                        return $"import {{ {nonArrayType} }} from '../../../../models/gen/{nonArrayType.ToKebabCase()}';{Environment.NewLine}";
+                }
             }
 
             return string.Empty;
@@ -130,7 +141,10 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
                 else
                     retQueryParameters += "&";
 
-                retQueryParameters += $"{param.Name}=${{{param.Name}}}";
+                if (param.Type.EndsWith("[]"))
+                    retQueryParameters += $"{param.Name}=${{this.baseService.createQueryParams({param.Name}, '{param.Name}')}}";
+                else
+                    retQueryParameters += $"{param.Name}=${{{param.Name}}}";
             }
 
             return retQueryParameters;

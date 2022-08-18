@@ -50,5 +50,23 @@
                 Environment.Exit(2);
             }
         }
+
+        public static void AppendToFile(this string data, string path)
+        {
+            try
+            {
+                var folder = Path.GetDirectoryName(path);
+                if (!Directory.Exists(folder))
+                    Directory.CreateDirectory(folder);
+
+                File.AppendAllText(path, data);
+                Console.WriteLine("Appended to ExportFile: " + data);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error writing to file: " + path + ". Exception: " + ex.Message);
+                Environment.Exit(2);
+            }
+        }
     }
 }

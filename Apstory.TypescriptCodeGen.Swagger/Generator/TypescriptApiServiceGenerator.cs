@@ -73,7 +73,7 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
 
 
                     methodStr += $"\tpublic async {method.Name}({methodParameters}): Promise{responseParam} {{{Environment.NewLine}";
-                    methodStr += $"\t\tconst url = `${{this.baseService.apiUrl}}{url.Replace("{", "${").Replace("${version}", "${this.version}")}{queryParameters}`;{Environment.NewLine}";
+                    methodStr += $"\t\tconst url = `${{this.baseService.apiUrl}}{url.Replace("{version}", "{this.version}").Replace("{", "${encodeURIComponent(").Replace("}", ")}")}{queryParameters}`;{Environment.NewLine}";
                     methodStr += $"\t\treturn await this.baseService.http{httpMethod}{httpUnAuthed}{responseParam}(url{postParams});{Environment.NewLine}";
                     methodStr += $"\t}}{Environment.NewLine}";
                     methodStr += $"{Environment.NewLine}";

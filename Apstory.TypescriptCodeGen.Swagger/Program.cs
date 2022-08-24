@@ -9,35 +9,32 @@ namespace Apstory.TypescriptCodeGen.Swagger
     {
         static void Main(string[] args)
         {
-            RunCodeGen("http://localhost:5000", "1", "D:\\P\\R\\Apstory\\ActiFinder_2.0\\UI\\Ionic\\apps\\ActiFinder.UI.Shared\\src\\lib", string.Empty).Wait();
-            RunCodeGen("http://localhost:5000", "2", "D:\\P\\R\\Apstory\\ActiFinder_2.0\\UI\\Ionic\\apps\\ActiFinder.UI.Shared\\src\\lib", string.Empty).Wait();
+            CommandLineApplication commandLineApplication = new CommandLineApplication(throwOnUnexpectedArg: false);
 
-            //CommandLineApplication commandLineApplication = new CommandLineApplication(throwOnUnexpectedArg: false);
+            CommandOption url = commandLineApplication.Option(
+              "-u |--Url <URL>", "The base url of the swagger api endpoint", CommandOptionType.SingleValue);
+            CommandOption version = commandLineApplication.Option(
+              "-v |--Version <Version>", "The version of the swagger api endpoint", CommandOptionType.SingleValue);
+            CommandOption outputDirectory = commandLineApplication.Option(
+              "-o |--OutputDirectory <OutputDirectory>", "The path to output to", CommandOptionType.SingleValue);
+            CommandOption exportFile = commandLineApplication.Option(
+              "-e |--ExportFile <ExportFile>", "A .ts file that lists all generated files", CommandOptionType.SingleValue);
 
-            //CommandOption url = commandLineApplication.Option(
-            //  "-u |--Url <URL>", "The base url of the swagger api endpoint", CommandOptionType.SingleValue);
-            //CommandOption version = commandLineApplication.Option(
-            //  "-v |--Version <Version>", "The version of the swagger api endpoint", CommandOptionType.SingleValue);
-            //CommandOption outputDirectory = commandLineApplication.Option(
-            //  "-o |--OutputDirectory <OutputDirectory>", "The path to output to", CommandOptionType.SingleValue);
-            //CommandOption exportFile = commandLineApplication.Option(
-            //  "-e |--ExportFile <ExportFile>", "A .ts file that lists all generated files", CommandOptionType.SingleValue);
+            commandLineApplication.HelpOption("-? | -h | --help");
 
-            //commandLineApplication.HelpOption("-? | -h | --help");
+            commandLineApplication.OnExecute(async () =>
+            {
+                Console.WriteLine($"Url: {url.Value()}");
+                Console.WriteLine($"Version: {version.Value()}");
+                Console.WriteLine($"OutputDirectory: {outputDirectory.Value()}");
+                Console.WriteLine($"ExportFile: {exportFile.Value()}");
 
-            //commandLineApplication.OnExecute(async () =>
-            //{
-            //    Console.WriteLine($"Url: {url.Value()}");
-            //    Console.WriteLine($"Version: {version.Value()}");
-            //    Console.WriteLine($"OutputDirectory: {outputDirectory.Value()}");
-            //    Console.WriteLine($"ExportFile: {exportFile.Value()}");
+                await RunCodeGen(url.Value(), version.Value(), outputDirectory.Value(), exportFile.Value());
 
-            //    await RunCodeGen(url.Value(), version.Value(), outputDirectory.Value(), exportFile.Value());
+                return 0;
+            });
 
-            //    return 0;
-            //});
-
-            //commandLineApplication.Execute(args);
+            commandLineApplication.Execute(args);
         }
 
         public static async Task RunCodeGen(string url, string version, string outputDirectory, string exportFile)

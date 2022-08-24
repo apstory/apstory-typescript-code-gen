@@ -56,6 +56,11 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
                         var newImportStr = GetParameterImport(param);
                         if (!importStr.Contains(newImportStr))
                             importStr += newImportStr;
+
+                        if (param.Type == "Date")
+                        {
+                            url = url.Replace($"{{{param.Name.ToCamelCase()}}}", $"{{await this.baseService.getDateString({param.Name.ToCamelCase()})}}");
+                        }
                     }
 
                     var queryParameters = GenerateQueryParameters(method.Parameters);
@@ -71,9 +76,9 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
                         //All post methods require a body, Supply an empty one
                         postParams = $", {{ }}";
 
-
+                    url = url.Replace("{version}", "{this.version}").Replace("{", "${encodeURIComponent(").Replace("}", ")}");
                     methodStr += $"\tpublic async {method.Name}({methodParameters}): Promise{responseParam} {{{Environment.NewLine}";
-                    methodStr += $"\t\tconst url = `${{this.baseService.apiUrl}}{url.Replace("{version}", "{this.version}").Replace("{", "${encodeURIComponent(").Replace("}", ")}")}{queryParameters}`;{Environment.NewLine}";
+                    methodStr += $"\t\tconst url = `${{this.baseService.apiUrl}}{url}{queryParameters}`;{Environment.NewLine}";
                     methodStr += $"\t\treturn await this.baseService.http{httpMethod}{httpUnAuthed}{responseParam}(url{postParams});{Environment.NewLine}";
                     methodStr += $"\t}}{Environment.NewLine}";
                     methodStr += $"{Environment.NewLine}";

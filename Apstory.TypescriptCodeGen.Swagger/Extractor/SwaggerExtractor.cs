@@ -102,7 +102,7 @@ namespace Apstory.TypescriptCodeGen.Swagger.Extractors
                             method.Parameters.Add(new Parameter()
                             {
                                 Name = refName.Replace("[]", "s"),
-                                Type = VariableExtensions.ToTypeScriptVariable(refName, string.Empty),
+                                Type = VariableExtensions.ToTypeScriptVariable(refName, entry.Schema.Format),
                                 In = Model.Enums.ParameterIn.Body,
                                 SubType = String.Empty
                             });
@@ -117,7 +117,6 @@ namespace Apstory.TypescriptCodeGen.Swagger.Extractors
                         if (successResponse is not null && successResponse.Content is not null && successResponse.Content.ContainsKey("application/json"))
                         {
                             var entry = successResponse.Content["application/json"];
-
                             string refName = GetVariableType(entry.Schema);
 
                             //TODO: Hack for now to get around invalid response types
@@ -127,7 +126,7 @@ namespace Apstory.TypescriptCodeGen.Swagger.Extractors
                             method.ResponseParameter = new Parameter()
                             {
                                 Name = refName.Replace("[]", "s"),
-                                Type = VariableExtensions.ToTypeScriptVariable(refName, string.Empty),
+                                Type = VariableExtensions.ToTypeScriptVariable(refName, entry.Schema.Format),
                                 In = Model.Enums.ParameterIn.Body,
                                 SubType = String.Empty,
                             };
@@ -139,14 +138,14 @@ namespace Apstory.TypescriptCodeGen.Swagger.Extractors
                         {
                             string refName = string.Empty;
                             if (param.Schema.Type == "array")
-                                refName = $"{VariableExtensions.ToTypeScriptVariable(param.Schema.Items.Type, string.Empty)}[]";
+                                refName = $"{VariableExtensions.ToTypeScriptVariable(param.Schema.Items.Type, param.Schema.Format)}[]";
                             else
                                 refName = param.Schema.Type ?? param.Schema.Reference.Substring(param.Schema.Reference.LastIndexOf("/") + 1);
 
                             method.Parameters.Add(new Parameter()
                             {
                                 Name = param.Name,
-                                Type = VariableExtensions.ToTypeScriptVariable(refName, string.Empty),
+                                Type = VariableExtensions.ToTypeScriptVariable(refName, param.Schema.Format),
                                 In = Enum.Parse<Model.Enums.ParameterIn>(param.In, true),
                                 SubType = param.Schema.Items?.Reference
                             });

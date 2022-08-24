@@ -10,5 +10,7 @@ namespace Apstory.TypescriptCodeGen.Swagger.Model.Extractor
 
         [JsonProperty("$ref")]
         public string Reference { get; set; }
+
+        public string Format { get; set; }
     }
 }

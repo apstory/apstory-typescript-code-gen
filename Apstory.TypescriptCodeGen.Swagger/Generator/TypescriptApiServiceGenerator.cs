@@ -48,6 +48,9 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
                         if (param.Name == "version")
                             continue;
 
+                        if (method.HttpMethod == Model.Enums.HttpMethod.Post && param.In == Model.Enums.ParameterIn.Query)
+                            continue;
+
                         if (!string.IsNullOrWhiteSpace(methodParameters))
                             methodParameters += ", ";
 
@@ -63,7 +66,9 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
                         }
                     }
 
-                    var queryParameters = GenerateQueryParameters(method.Parameters);
+                    var queryParameters = string.Empty;
+                    if (method.HttpMethod != Model.Enums.HttpMethod.Post)
+                        queryParameters = GenerateQueryParameters(method.Parameters);
 
                     // Setup http call: 'await baseService.http___(URL,DATA);
                     var httpMethod = method.HttpMethod.ToString();

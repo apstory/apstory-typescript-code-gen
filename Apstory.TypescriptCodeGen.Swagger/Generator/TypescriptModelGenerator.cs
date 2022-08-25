@@ -48,7 +48,6 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
                 typescriptModel = typescriptModel.Replace("#VARIABLES#", varStr);
                 typescriptModel = typescriptModel.Replace("#IMPORTS#", importStr);
 
-
                 typescriptModel.WriteToFile(filePath);
 
                 if (!string.IsNullOrWhiteSpace(_exportFile))

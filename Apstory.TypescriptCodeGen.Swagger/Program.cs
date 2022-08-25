@@ -46,6 +46,9 @@ namespace Apstory.TypescriptCodeGen.Swagger
                     var se = new SwaggerExtractor();
                     await se.Extract($"{url}/swagger/v{version}/swagger.json");
 
+                    if (!string.IsNullOrWhiteSpace(exportFile))
+                        File.Delete(exportFile);
+
                     var tmg = new TypescriptModelGenerator($"{outputDirectory}\\models\\gen", exportFile);
                     await tmg.Generate(se.GetClassModels());
 

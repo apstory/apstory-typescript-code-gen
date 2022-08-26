@@ -1,10 +1,12 @@
-﻿namespace Apstory.TypescriptCodeGen.Swagger.Util
+﻿using System.Reflection;
+
+namespace Apstory.TypescriptCodeGen.Swagger.Util
 {
     public static class FileExtensions
     {
         public static string ToLocalPath(this string path)
         {
-            var localPath = Environment.CurrentDirectory;
+            var localPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             return Path.Combine(localPath, path);
         }
 

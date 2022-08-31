@@ -85,12 +85,15 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
                     url = url.Replace("{version}", "{this.version}").Replace("{", "${encodeURIComponent(").Replace("}", ")}");
                     if (cacheToApply is not null)
                     {
-                        if (method.HttpMethod == Model.Enums.HttpMethod.Post || method.HttpMethod == Model.Enums.HttpMethod.Put)
-                            methodStr += $"\t@CacheExpireCategory(CacheCategory.{cacheToApply.CachingCategory}){Environment.NewLine}";
-                        else if (string.IsNullOrEmpty(cacheToApply.CachingDuration))
-                            methodStr += $"\t@Cacheable(CacheCategory.{cacheToApply.CachingCategory}){Environment.NewLine}";
-                        else
-                            methodStr += $"\t@Cacheable(CacheCategory.{cacheToApply.CachingCategory}, {cacheToApply.CachingDuration}){Environment.NewLine}";
+                        if (method.HttpMethod != Model.Enums.HttpMethod.Delete)
+                        {
+                            if (method.HttpMethod == Model.Enums.HttpMethod.Post || method.HttpMethod == Model.Enums.HttpMethod.Put)
+                                methodStr += $"\t@CacheExpireCategory(CacheCategory.{cacheToApply.CachingCategory}){Environment.NewLine}";
+                            else if (string.IsNullOrEmpty(cacheToApply.CachingDuration))
+                                methodStr += $"\t@Cacheable(CacheCategory.{cacheToApply.CachingCategory}){Environment.NewLine}";
+                            else
+                                methodStr += $"\t@Cacheable(CacheCategory.{cacheToApply.CachingCategory}, {cacheToApply.CachingDuration}){Environment.NewLine}";
+                        }
                     }
 
                     methodStr += $"\tpublic async {method.Name}({methodParameters}): Promise{responseParam} {{{Environment.NewLine}";
@@ -102,9 +105,6 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
 
                 if (cacheToApply is not null)
                     importStr += $"import {{ Cacheable, CacheCategory, CacheExpireCategory }} from './../../../caching/cachable-decorator';{Environment.NewLine}";
-
-                //if (!string.IsNullOrWhiteSpace(importStr))
-                //    importStr += Environment.NewLine;
 
                 typescriptModel = typescriptModel.Replace("#VERSION#", $"'{_version}'");
                 typescriptModel = typescriptModel.Replace("#METHODS#", methodStr);

@@ -16,13 +16,14 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
             _exportFile = exportFile;
         }
 
-        public async Task Generate(List<ApiDefinitionModel> apiModels)
+        public async Task Generate(List<ApiDefinitionModel> apiModels, List<CachingInstruction> cachingInstructions)
         {
             foreach (var model in apiModels)
             {
                 var fileName = model.ControllerName.ToKebabCase();
                 var filePath = $"{_directoryPath}\\{fileName}-v{_version}.service.ts";
 
+                var cacheToApply = cachingInstructions.FirstOrDefault(s => s.ServiceName == model.ControllerName && s.Version == $"v{_version}");
                 model.ControllerName += $"V{_version}Service";
                 var typescriptModel = "Template/TypescriptApiService.txt".ToLocalPath().ReadEntireFile();
                 typescriptModel = typescriptModel.Replace("#CLASSNAME#", model.ControllerName);
@@ -37,7 +38,7 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
                     var responseParam = GetResponseParameter(method.ResponseParameter);
                     var responseImport = GetParameterImport(method.ResponseParameter);
                     if (!importStr.Contains(responseImport))
-                        importStr += responseImport + Environment.NewLine;
+                        importStr += responseImport;
 
                     //Setup the functions incoming parameters
                     var methodParameters = string.Empty;
@@ -82,6 +83,16 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
                         postParams = $", {{ }}";
 
                     url = url.Replace("{version}", "{this.version}").Replace("{", "${encodeURIComponent(").Replace("}", ")}");
+                    if (cacheToApply is not null)
+                    {
+                        if (method.HttpMethod == Model.Enums.HttpMethod.Post || method.HttpMethod == Model.Enums.HttpMethod.Put)
+                            methodStr += $"\t@CacheExpireCategory(CacheCategory.{cacheToApply.CachingCategory}){Environment.NewLine}";
+                        else if (string.IsNullOrEmpty(cacheToApply.CachingDuration))
+                            methodStr += $"\t@Cacheable(CacheCategory.{cacheToApply.CachingCategory}){Environment.NewLine}";
+                        else
+                            methodStr += $"\t@Cacheable(CacheCategory.{cacheToApply.CachingCategory}, {cacheToApply.CachingDuration}){Environment.NewLine}";
+                    }
+
                     methodStr += $"\tpublic async {method.Name}({methodParameters}): Promise{responseParam} {{{Environment.NewLine}";
                     methodStr += $"\t\tconst url = `${{this.baseService.apiUrl}}{url}{queryParameters}`;{Environment.NewLine}";
                     methodStr += $"\t\treturn await this.baseService.http{httpMethod}{httpUnAuthed}{responseParam}(url{postParams});{Environment.NewLine}";
@@ -89,8 +100,11 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
                     methodStr += $"{Environment.NewLine}";
                 }
 
-                if (!string.IsNullOrWhiteSpace(importStr))
-                    importStr += Environment.NewLine;
+                if (cacheToApply is not null)
+                    importStr += $"import {{ Cacheable, CacheCategory, CacheExpireCategory }} from './../../../caching/cachable-decorator';{Environment.NewLine}";
+
+                //if (!string.IsNullOrWhiteSpace(importStr))
+                //    importStr += Environment.NewLine;
 
                 typescriptModel = typescriptModel.Replace("#VERSION#", $"'{_version}'");
                 typescriptModel = typescriptModel.Replace("#METHODS#", methodStr);

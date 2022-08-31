@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.CommandLineUtils;
 using Apstory.TypescriptCodeGen.Swagger.Extractors;
 using Apstory.TypescriptCodeGen.Swagger.Generator;
+using Apstory.TypescriptCodeGen.Swagger.Model;
+using Apstory.TypescriptCodeGen.Swagger.Util;
 
 namespace Apstory.TypescriptCodeGen.Swagger
 {
@@ -19,6 +21,8 @@ namespace Apstory.TypescriptCodeGen.Swagger
               "-o |--OutputDirectory <OutputDirectory>", "The path to output to", CommandOptionType.SingleValue);
             CommandOption exportFile = commandLineApplication.Option(
               "-e |--ExportFile <ExportFile>", "A .ts file that lists all generated files", CommandOptionType.SingleValue);
+            CommandOption cachingFile = commandLineApplication.Option(
+              "-c |--CachingFile <CachingFile>", "A .txt file that lists all caching instructions in the format: '[Service Name]:[Version]:[Caching Category]:[Duration In Minutes]'", CommandOptionType.SingleValue);
 
             commandLineApplication.HelpOption("-? | -h | --help");
 
@@ -29,7 +33,7 @@ namespace Apstory.TypescriptCodeGen.Swagger
                 Console.WriteLine($"OutputDirectory: {outputDirectory.Value()}");
                 Console.WriteLine($"ExportFile: {exportFile.Value()}");
 
-                await RunCodeGen(url.Value(), version.Value(), outputDirectory.Value(), exportFile.Value());
+                await RunCodeGen(url.Value(), version.Value(), outputDirectory.Value(), exportFile.Value(), cachingFile.Value());
 
                 return 0;
             });
@@ -37,12 +41,16 @@ namespace Apstory.TypescriptCodeGen.Swagger
             commandLineApplication.Execute(args);
         }
 
-        public static async Task RunCodeGen(string url, string version, string outputDirectory, string exportFile)
+        public static async Task RunCodeGen(string url, string version, string outputDirectory, string exportFile, string cachingFile)
         {
             if (!string.IsNullOrEmpty(url) && !string.IsNullOrEmpty(version) && !string.IsNullOrEmpty(outputDirectory))
             {
                 try
                 {
+                    List<CachingInstruction> cachingInstructions = new List<CachingInstruction>();
+                    if (!string.IsNullOrWhiteSpace(cachingFile))
+                        cachingInstructions = ExtractCachingFromFile(cachingFile);
+
                     var se = new SwaggerExtractor();
                     await se.Extract($"{url}/swagger/v{version}/swagger.json");
 
@@ -53,7 +61,7 @@ namespace Apstory.TypescriptCodeGen.Swagger
                     await tmg.Generate(se.GetClassModels());
 
                     var tasg = new TypescriptApiServiceGenerator($"{outputDirectory}\\services\\gen\\api\\v{version}", version, exportFile);
-                    await tasg.Generate(se.GetApiModels());
+                    await tasg.Generate(se.GetApiModels(), cachingInstructions);
                 }
                 catch (Exception ex)
                 {
@@ -64,6 +72,21 @@ namespace Apstory.TypescriptCodeGen.Swagger
             {
                 Console.WriteLine("Error! Url, Version and OutputDirectory needs to be supplied");
             }
+        }
+
+        private static List<CachingInstruction> ExtractCachingFromFile(string cachingFile)
+        {
+            List<CachingInstruction> retCachingInstructions = new List<CachingInstruction>();
+
+            var cachingContents = cachingFile.ReadEntireFile();
+            foreach (var cachingLine in cachingContents.Split("\r\n"))
+            {
+                var parts = cachingLine.Split(":");
+                if (parts.Length >= 3)
+                    retCachingInstructions.Add(new CachingInstruction(parts[0], parts[1], parts[2], parts.Length > 3 ? parts[3] : String.Empty));
+            }
+
+            return retCachingInstructions;
         }
     }
 }

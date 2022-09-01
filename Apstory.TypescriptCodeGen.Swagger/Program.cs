@@ -3,6 +3,7 @@ using Apstory.TypescriptCodeGen.Swagger.Extractors;
 using Apstory.TypescriptCodeGen.Swagger.Generator;
 using Apstory.TypescriptCodeGen.Swagger.Model;
 using Apstory.TypescriptCodeGen.Swagger.Util;
+using System.Reflection;
 
 namespace Apstory.TypescriptCodeGen.Swagger
 {
@@ -11,6 +12,13 @@ namespace Apstory.TypescriptCodeGen.Swagger
     {
         static void Main(string[] args)
         {
+            var versionString = Assembly.GetEntryAssembly()?
+                                        .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+                                        .InformationalVersion
+                                        .ToString();
+
+            Console.WriteLine($"Apstory TypeScript-Codegen v{versionString}");
+
             CommandLineApplication commandLineApplication = new CommandLineApplication(throwOnUnexpectedArg: false);
 
             CommandOption url = commandLineApplication.Option(

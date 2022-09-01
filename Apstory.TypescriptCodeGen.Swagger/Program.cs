@@ -30,7 +30,7 @@ namespace Apstory.TypescriptCodeGen.Swagger
             CommandOption exportFile = commandLineApplication.Option(
               "-e |--ExportFile <ExportFile>", "A .ts file that lists all generated files", CommandOptionType.SingleValue);
             CommandOption cachingFile = commandLineApplication.Option(
-              "-c |--CachingFile <CachingFile>", "A .txt file that lists all caching instructions in the format: '[Service Name]:[Version]:[Caching Category]:[Duration In Minutes]'", CommandOptionType.SingleValue);
+              "-c |--CachingFile <CachingFile>", "A .txt file that lists all caching instructions in the format: '[Service Name]:[Version]:[Caching Category]:[Duration In Minutes]?:[Caches To Expire on Post/Put/Delete]'", CommandOptionType.SingleValue);
 
             commandLineApplication.HelpOption("-? | -h | --help");
 
@@ -90,7 +90,9 @@ namespace Apstory.TypescriptCodeGen.Swagger
             foreach (var cachingLine in cachingContents.Split("\r\n"))
             {
                 var parts = cachingLine.Split(":");
-                if (parts.Length >= 3)
+                if (parts.Length >= 5)
+                    retCachingInstructions.Add(new CachingInstruction(parts[0], parts[1], parts[2], parts[3], parts[4].Split(",").ToList()));
+                else if (parts.Length >= 3)
                     retCachingInstructions.Add(new CachingInstruction(parts[0], parts[1], parts[2], parts.Length > 3 ? parts[3] : String.Empty));
             }
 

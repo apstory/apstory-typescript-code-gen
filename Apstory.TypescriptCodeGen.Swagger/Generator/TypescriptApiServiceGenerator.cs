@@ -87,8 +87,13 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
                     {
                         if (method.HttpMethod != Model.Enums.HttpMethod.Delete)
                         {
-                            if (method.HttpMethod == Model.Enums.HttpMethod.Post || method.HttpMethod == Model.Enums.HttpMethod.Put)
-                                methodStr += $"\t@CacheExpireCategory(CacheCategory.{cacheToApply.CachingCategory}){Environment.NewLine}";
+                            if (method.HttpMethod == Model.Enums.HttpMethod.Post ||
+                                method.HttpMethod == Model.Enums.HttpMethod.Put ||
+                                method.HttpMethod == Model.Enums.HttpMethod.Delete)
+                            {
+                                foreach (var expireCache in cacheToApply.ExpireCategories)
+                                    methodStr += $"\t@CacheExpireCategory(CacheCategory.{expireCache}){Environment.NewLine}";
+                            }
                             else if (string.IsNullOrEmpty(cacheToApply.CachingDuration))
                                 methodStr += $"\t@Cacheable(CacheCategory.{cacheToApply.CachingCategory}){Environment.NewLine}";
                             else

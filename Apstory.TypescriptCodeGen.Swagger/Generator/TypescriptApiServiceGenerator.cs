@@ -172,7 +172,7 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
                     retQueryParameters += "&";
 
                 if (param.Type.EndsWith("[]"))
-                    retQueryParameters += $"{param.Name}=${{this.baseService.createQueryParams({param.Name}, '{param.Name}')}}";
+                    retQueryParameters += $"${{this.baseService.createQueryParams({param.Name}, '{param.Name}')}}";
                 else
                 {
                     var dateFriendlyParam = param.Name;

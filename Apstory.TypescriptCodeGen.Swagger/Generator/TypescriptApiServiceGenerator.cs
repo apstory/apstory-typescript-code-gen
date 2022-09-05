@@ -1,5 +1,6 @@
 ﻿using Apstory.TypescriptCodeGen.Swagger.Model;
 using Apstory.TypescriptCodeGen.Swagger.Util;
+using System;
 
 namespace Apstory.TypescriptCodeGen.Swagger.Generator
 {
@@ -173,7 +174,13 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
                 if (param.Type.EndsWith("[]"))
                     retQueryParameters += $"{param.Name}=${{this.baseService.createQueryParams({param.Name}, '{param.Name}')}}";
                 else
-                    retQueryParameters += $"{param.Name}=${{(!{param.Name} ? '' : encodeURIComponent({param.Name}))}}";
+                {
+                    var dateFriendlyParam = param.Name;
+                    if (param.Type == "Date")
+                        dateFriendlyParam = $"await this.baseService.getDateString({param.Name})";
+
+                    retQueryParameters += $"{param.Name}=${{(!{param.Name} ? '' : encodeURIComponent({dateFriendlyParam}))}}";
+                }
             }
 
             return retQueryParameters;

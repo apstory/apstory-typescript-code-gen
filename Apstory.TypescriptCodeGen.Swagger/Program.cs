@@ -7,7 +7,6 @@ using System.Reflection;
 
 namespace Apstory.TypescriptCodeGen.Swagger
 {
-
     class Program
     {
         static void Main(string[] args)
@@ -64,11 +63,12 @@ namespace Apstory.TypescriptCodeGen.Swagger
 
                     if (!string.IsNullOrWhiteSpace(exportFile))
                         File.Delete(exportFile);
+                    
 
-                    var tmg = new TypescriptModelGenerator($"{outputDirectory}\\models\\gen", exportFile);
+                    var tmg = new TypescriptModelGenerator(Path.Join(outputDirectory, "models", "gen"), exportFile);
                     await tmg.Generate(se.GetClassModels());
 
-                    var tasg = new TypescriptApiServiceGenerator($"{outputDirectory}\\services\\gen\\api\\v{version}", version, exportFile);
+                    var tasg = new TypescriptApiServiceGenerator(Path.Join(outputDirectory, "services", "gen", "api", $"v{version}"), version, exportFile);
                     await tasg.Generate(se.GetApiModels(), cachingInstructions);
                 }
                 catch (Exception ex)

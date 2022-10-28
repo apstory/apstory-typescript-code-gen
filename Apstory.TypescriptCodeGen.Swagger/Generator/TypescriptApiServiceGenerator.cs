@@ -22,7 +22,7 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
             foreach (var model in apiModels)
             {
                 var fileName = model.ControllerName.ToKebabCase();
-                var filePath = $"{_directoryPath}\\{fileName}-v{_version}.service.ts";
+                var filePath = Path.Join($"{_directoryPath}",$"{fileName}-v{_version}.service.ts");
 
                 var cacheToApply = cachingInstructions.FirstOrDefault(s => s.ServiceName == model.ControllerName && s.Version == $"v{_version}");
                 model.ControllerName += $"V{_version}Service";

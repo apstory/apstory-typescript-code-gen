@@ -63,7 +63,7 @@ namespace Apstory.TypescriptCodeGen.Swagger
 
                     if (!string.IsNullOrWhiteSpace(exportFile))
                         File.Delete(exportFile);
-                    
+
 
                     var tmg = new TypescriptModelGenerator(Path.Join(outputDirectory, "models", "gen"), exportFile);
                     await tmg.Generate(se.GetClassModels());
@@ -87,9 +87,9 @@ namespace Apstory.TypescriptCodeGen.Swagger
             List<CachingInstruction> retCachingInstructions = new List<CachingInstruction>();
 
             var cachingContents = cachingFile.ReadEntireFile();
-            foreach (var cachingLine in cachingContents.Split("\r\n"))
+            foreach (var cachingLine in cachingContents.Split("\n"))
             {
-                var parts = cachingLine.Split(":");
+                var parts = cachingLine.Trim().Split(":");
                 if (parts.Length >= 5)
                     retCachingInstructions.Add(new CachingInstruction(parts[0], parts[1], parts[2], parts[3], parts[4].Split(",").ToList()));
                 else if (parts.Length >= 3)

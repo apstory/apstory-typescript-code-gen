@@ -24,6 +24,8 @@ namespace Apstory.TypescriptCodeGen.Swagger
               "-u |--Url <URL>", "The base url of the swagger api endpoint", CommandOptionType.SingleValue);
             CommandOption version = commandLineApplication.Option(
               "-v |--Version <Version>", "The version of the swagger api endpoint", CommandOptionType.SingleValue);
+            CommandOption group = commandLineApplication.Option(
+              "-g |--Group <Group>", "The group name of the swagger api endpoint (automatically generated from version if left blank)", CommandOptionType.SingleValue);
             CommandOption outputDirectory = commandLineApplication.Option(
               "-o |--OutputDirectory <OutputDirectory>", "The path to output to", CommandOptionType.SingleValue);
             CommandOption exportFile = commandLineApplication.Option(
@@ -37,10 +39,11 @@ namespace Apstory.TypescriptCodeGen.Swagger
             {
                 Console.WriteLine($"Url: {url.Value()}");
                 Console.WriteLine($"Version: {version.Value()}");
+                Console.WriteLine($"Group: {group.Value()}");
                 Console.WriteLine($"OutputDirectory: {outputDirectory.Value()}");
                 Console.WriteLine($"ExportFile: {exportFile.Value()}");
 
-                await RunCodeGen(url.Value(), version.Value(), outputDirectory.Value(), exportFile.Value(), cachingFile.Value());
+                await RunCodeGen(url.Value(), group.Value(), version.Value(), outputDirectory.Value(), exportFile.Value(), cachingFile.Value());
 
                 return 0;
             });
@@ -48,8 +51,11 @@ namespace Apstory.TypescriptCodeGen.Swagger
             commandLineApplication.Execute(args);
         }
 
-        public static async Task RunCodeGen(string url, string version, string outputDirectory, string exportFile, string cachingFile)
+        public static async Task RunCodeGen(string url, string group, string version, string outputDirectory, string exportFile, string cachingFile)
         {
+            if (string.IsNullOrEmpty(group))
+                group = $"v{version}";
+
             if (!string.IsNullOrEmpty(url) && !string.IsNullOrEmpty(version) && !string.IsNullOrEmpty(outputDirectory))
             {
                 try
@@ -59,7 +65,7 @@ namespace Apstory.TypescriptCodeGen.Swagger
                         cachingInstructions = ExtractCachingFromFile(cachingFile);
 
                     var se = new SwaggerExtractor();
-                    await se.Extract($"{url}/swagger/v{version}/swagger.json");
+                    await se.Extract($"{url}/swagger/{group}/swagger.json");
 
                     if (!string.IsNullOrWhiteSpace(exportFile))
                         File.Delete(exportFile);
@@ -68,7 +74,7 @@ namespace Apstory.TypescriptCodeGen.Swagger
                     var tmg = new TypescriptModelGenerator(Path.Join(outputDirectory, "models", "gen"), exportFile);
                     await tmg.Generate(se.GetClassModels());
 
-                    var tasg = new TypescriptApiServiceGenerator(Path.Join(outputDirectory, "services", "gen", "api", $"v{version}"), version, exportFile);
+                    var tasg = new TypescriptApiServiceGenerator(Path.Join(outputDirectory, "services", "gen", "api", group), group, version, exportFile);
                     await tasg.Generate(se.GetApiModels(), cachingInstructions);
                 }
                 catch (Exception ex)

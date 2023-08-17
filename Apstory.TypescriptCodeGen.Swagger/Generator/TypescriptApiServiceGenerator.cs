@@ -8,11 +8,13 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
     {
         private string _directoryPath;
         private string _version;
+        private string _group;
         private string _exportFile;
 
-        public TypescriptApiServiceGenerator(string directoryPath, string version, string exportFile)
+        public TypescriptApiServiceGenerator(string directoryPath, string group, string version, string exportFile)
         {
             _directoryPath = directoryPath;
+            _group = group;
             _version = version;
             _exportFile = exportFile;
         }
@@ -22,10 +24,10 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
             foreach (var model in apiModels)
             {
                 var fileName = model.ControllerName.ToKebabCase();
-                var filePath = Path.Join($"{_directoryPath}",$"{fileName}-v{_version}.service.ts");
+                var filePath = Path.Join($"{_directoryPath}", $"{fileName}-{_group}.service.ts");
 
                 var cacheToApply = cachingInstructions.FirstOrDefault(s => s.ServiceName == model.ControllerName && s.Version == $"v{_version}");
-                model.ControllerName += $"V{_version}Service";
+                model.ControllerName += $"{_group}Service";
                 var typescriptModel = "Template/TypescriptApiService.txt".ToLocalPath().ReadEntireFile();
                 typescriptModel = typescriptModel.Replace("#CLASSNAME#", model.ControllerName);
 
@@ -119,7 +121,7 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
                 typescriptModel.WriteToFile(filePath);
 
                 if (!string.IsNullOrWhiteSpace(_exportFile))
-                    $"export * from './lib/services/gen/api/v{_version}/{fileName}-v{_version}.service';{Environment.NewLine}".AppendToFile(_exportFile);
+                    $"export * from './lib/services/gen/api/v{_group}/{fileName}-{_group}.service';{Environment.NewLine}".AppendToFile(_exportFile);
             }
         }
 

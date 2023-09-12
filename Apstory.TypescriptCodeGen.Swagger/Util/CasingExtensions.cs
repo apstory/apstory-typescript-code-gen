@@ -18,6 +18,9 @@ namespace Apstory.TypescriptCodeGen.Swagger.Util
 
         public static string ToPascalCase(this string input)
         {
+            if (char.IsUpper(input[0]))
+                return input;
+
             if (input.Length < 1)
                 return input.ToUpper();
 

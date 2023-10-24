@@ -60,7 +60,7 @@ namespace Apstory.TypescriptCodeGen.Swagger
             {
                 try
                 {
-                    List<CachingInstruction> cachingInstructions = new List<CachingInstruction>();
+                    List<CachingInstructionBase> cachingInstructions = new List<CachingInstructionBase>();
                     if (!string.IsNullOrWhiteSpace(cachingFile))
                         cachingInstructions = ExtractCachingFromFile(cachingFile);
 
@@ -88,18 +88,23 @@ namespace Apstory.TypescriptCodeGen.Swagger
             }
         }
 
-        private static List<CachingInstruction> ExtractCachingFromFile(string cachingFile)
+        private static List<CachingInstructionBase> ExtractCachingFromFile(string cachingFile)
         {
-            List<CachingInstruction> retCachingInstructions = new List<CachingInstruction>();
+            List<CachingInstructionBase> retCachingInstructions = new List<CachingInstructionBase>();
 
             var cachingContents = cachingFile.ReadEntireFile();
             foreach (var cachingLine in cachingContents.Split("\n"))
             {
                 var parts = cachingLine.Trim().Split(":");
-                if (parts.Length >= 5)
-                    retCachingInstructions.Add(new CachingInstruction(parts[0], parts[1], parts[2], parts[3], parts[4].Split(",").ToList()));
-                else if (parts.Length >= 3)
-                    retCachingInstructions.Add(new CachingInstruction(parts[0], parts[1], parts[2], parts.Length > 3 ? parts[3] : String.Empty));
+                if (parts[0] == "TCACHE")
+                    retCachingInstructions.Add(new TimeoutCachingInstruction(parts[1], parts[2], parts[3], parts[4]));
+                else
+                {
+                    if (parts.Length >= 5)
+                        retCachingInstructions.Add(new CachingInstruction(parts[0], parts[1], parts[2], parts[3], parts[4].Split(",").ToList()));
+                    else if (parts.Length >= 3)
+                        retCachingInstructions.Add(new CachingInstruction(parts[0], parts[1], parts[2], parts.Length > 3 ? parts[3] : String.Empty));
+                }
             }
 
             return retCachingInstructions;

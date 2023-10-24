@@ -19,14 +19,16 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
             _exportFile = exportFile;
         }
 
-        public async Task Generate(List<ApiDefinitionModel> apiModels, List<CachingInstruction> cachingInstructions)
+        public async Task Generate(List<ApiDefinitionModel> apiModels, List<CachingInstructionBase> cachingInstructions)
         {
             foreach (var model in apiModels)
             {
                 var fileName = model.ControllerName.ToKebabCase();
                 var filePath = Path.Join($"{_directoryPath}", $"{fileName}-{_group}.service.ts");
 
-                var cacheToApply = cachingInstructions.FirstOrDefault(s => s.ServiceName == model.ControllerName && s.Version == $"v{_version}");
+                var allCachesToApply = cachingInstructions.Where(s => s.ServiceName == model.ControllerName && s.Version == $"v{_version}").ToList();
+                var cacheToApply = (CachingInstruction?)allCachesToApply.FirstOrDefault(s => s.GetType() == typeof(CachingInstruction));
+
                 model.ControllerName += $"{_group.ToPascalCase()}Service";
                 var typescriptModel = "Template/TypescriptApiService.txt".ToLocalPath().ReadEntireFile();
                 typescriptModel = typescriptModel.Replace("#CLASSNAME#", model.ControllerName);
@@ -36,6 +38,9 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
                 foreach (var method in model.Methods)
                 {
                     var url = method.Path;
+                    var timeoutCacheToApply = allCachesToApply.Where(s => s.GetType() == typeof(TimeoutCachingInstruction))
+                                                              .Cast<TimeoutCachingInstruction>()
+                                                              .FirstOrDefault(s => s.MethodName == method.Name);
 
                     //Setup the functions return parameters
                     var responseParam = GetResponseParameter(method.ResponseParameter);
@@ -90,6 +95,9 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
                         postParams = $", {{ }}";
 
                     url = url.Replace("{version}", "{this.version}").Replace("{", "${encodeURIComponent(").Replace("}", ")}");
+                    if (timeoutCacheToApply is not null)
+                        methodStr += $"\t@TimeoutCache(CacheArguments.{timeoutCacheToApply.CachingArguments}){Environment.NewLine}";
+
                     if (cacheToApply is not null)
                     {
                         if (method.HttpMethod != Model.Enums.HttpMethod.Delete)
@@ -115,9 +123,13 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
                     methodStr += $"{Environment.NewLine}";
                 }
 
+                var hasTimeoutCaches = allCachesToApply.Any(s => s.GetType() == typeof(TimeoutCachingInstruction));
+                if (hasTimeoutCaches)
+                    importStr += $"import {{ CacheArguments, TimeoutCache }} from '../../../caching/timeout-cache-decorator';{Environment.NewLine}";
+
                 if (cacheToApply is not null)
                     importStr += $"import {{ Cacheable, CacheCategory, CacheExpireCategory }} from './../../../caching/cachable-decorator';{Environment.NewLine}";
-
+                
                 typescriptModel = typescriptModel.Replace("#VERSION#", $"'{_version}'");
                 typescriptModel = typescriptModel.Replace("#METHODS#", methodStr);
                 typescriptModel = typescriptModel.Replace("#IMPORTS#", importStr);

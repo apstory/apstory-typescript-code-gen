@@ -70,6 +70,10 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
                         }
                     }
 
+                    if (!string.IsNullOrWhiteSpace(methodParameters))
+                        methodParameters += ", ";
+                    methodParameters += $"timeout?: number";
+
                     var queryParameters = string.Empty;
                     if (method.HttpMethod != Model.Enums.HttpMethod.Post)
                         queryParameters = GenerateQueryParameters(method.Parameters);
@@ -106,7 +110,7 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
 
                     methodStr += $"\tpublic async {method.Name}({methodParameters}): Promise{responseParam} {{{Environment.NewLine}";
                     methodStr += $"\t\tconst url = `${{this.baseService.apiUrl}}{url}{queryParameters}`;{Environment.NewLine}";
-                    methodStr += $"\t\treturn await this.baseService.http{httpMethod}{httpUnAuthed}{responseParam}(url{postParams});{Environment.NewLine}";
+                    methodStr += $"\t\treturn await this.baseService.http{httpMethod}{httpUnAuthed}{responseParam}(url{postParams}, timeout);{Environment.NewLine}";
                     methodStr += $"\t}}{Environment.NewLine}";
                     methodStr += $"{Environment.NewLine}";
                 }

@@ -18,7 +18,12 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
             foreach (var model in classModels)
             {
                 var fileName = model.Name.ToKebabCase();
-                var filePath = $"{_directoryPath}/{fileName}.ts";
+                var filePath = string.Empty;
+
+                if (string.IsNullOrWhiteSpace(model.Namespace))
+                    filePath += $"{_directoryPath}/{fileName}.ts";
+                else
+                    filePath += $"{_directoryPath}/{model.Namespace.ToLower()}/{fileName}.ts";
 
                 var typescriptModel = "Template/TypescriptModel.txt".ToLocalPath().ReadEntireFile();
                 typescriptModel = typescriptModel.Replace("#CLASSNAME#", model.Name);
@@ -32,10 +37,11 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
                     if (!isKnownType(variable.Type))
                     {
                         var newImportStr = string.Empty;
+                        var namespaceStr = string.IsNullOrWhiteSpace(variable.Namespace) ? string.Empty : $"/{variable.Namespace.ToLower()}";
                         if (variable.Type.EndsWith("Id"))
-                            newImportStr = $"import {{ {variable.Type} }} from '../enums/{variable.Type.ToKebabCase()}';";
+                            newImportStr = $"import {{ {variable.Type} }} from '..{namespaceStr}/enums/{variable.Type.ToKebabCase()}';";
                         else
-                            newImportStr = $"import {{ {variable.Type} }} from './{variable.Type.ToKebabCase()}';";
+                            newImportStr = $"import {{ {variable.Type} }} from '..{namespaceStr}/{variable.Type.ToKebabCase()}';";
 
                         if (!importStr.Contains(newImportStr))
                             importStr += newImportStr + Environment.NewLine;

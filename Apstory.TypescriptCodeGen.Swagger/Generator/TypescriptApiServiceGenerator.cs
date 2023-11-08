@@ -168,11 +168,13 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
                 var nonArrayType = parameter?.Type.Replace("[]", "");
                 if (!isKnownType(nonArrayType))
                 {
+                    var namespaceStr = string.IsNullOrWhiteSpace(parameter.Namespace) ? string.Empty : $"/{parameter.Namespace.ToLower()}";
+
                     //All complex objects that end with Id are Enums
                     if (nonArrayType.EndsWith("Id"))
-                        return $"import {{ {nonArrayType} }} from '../../../../models/enums/{nonArrayType.ToKebabCase()}';{Environment.NewLine}";
+                        return $"import {{ {nonArrayType} }} from '../../../../models{namespaceStr}/enums/{nonArrayType.ToKebabCase()}';{Environment.NewLine}";
                     else
-                        return $"import {{ {nonArrayType} }} from '../../../../models/gen/{nonArrayType.ToKebabCase()}';{Environment.NewLine}";
+                        return $"import {{ {nonArrayType} }} from '../../../../models/gen{namespaceStr}/{nonArrayType.ToKebabCase()}';{Environment.NewLine}";
                 }
             }
 

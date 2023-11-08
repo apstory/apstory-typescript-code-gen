@@ -99,13 +99,7 @@ namespace Apstory.TypescriptCodeGen.Swagger.Extractors
                             var entry = swagMethodInfo.RequestBody.Content["application/json"];
 
                             string refName = GetVariableType(entry.Schema);
-                            method.Parameters.Add(new Parameter()
-                            {
-                                Name = refName.Replace("[]", "s"),
-                                Type = VariableExtensions.ToTypeScriptVariable(refName, entry.Schema.Format),
-                                In = Model.Enums.ParameterIn.Body,
-                                SubType = String.Empty
-                            });
+                            method.Parameters.Add(new Parameter(refName.Replace("[]", "s"), Model.Enums.ParameterIn.Body, VariableExtensions.ToTypeScriptVariable(refName, entry.Schema.Format), string.Empty));
                         }
 
                         //TODO: "multipart/form-data"
@@ -123,13 +117,7 @@ namespace Apstory.TypescriptCodeGen.Swagger.Extractors
                             if (refName == "StringByteArrayValueTuple")
                                 continue;
 
-                            method.ResponseParameter = new Parameter()
-                            {
-                                Name = refName.Replace("[]", "s"),
-                                Type = VariableExtensions.ToTypeScriptVariable(refName, entry.Schema.Format),
-                                In = Model.Enums.ParameterIn.Body,
-                                SubType = String.Empty,
-                            };
+                            method.ResponseParameter = new Parameter(refName.Replace("[]", "s"), Model.Enums.ParameterIn.Body, VariableExtensions.ToTypeScriptVariable(refName, entry.Schema.Format), string.Empty);
                         }
                     }
 
@@ -142,13 +130,7 @@ namespace Apstory.TypescriptCodeGen.Swagger.Extractors
                             else
                                 refName = param.Schema.Type ?? param.Schema.Reference.Substring(param.Schema.Reference.LastIndexOf("/") + 1);
 
-                            method.Parameters.Add(new Parameter()
-                            {
-                                Name = param.Name,
-                                Type = VariableExtensions.ToTypeScriptVariable(refName, param.Schema.Format),
-                                In = Enum.Parse<Model.Enums.ParameterIn>(param.In, true),
-                                SubType = param.Schema.Items?.Reference
-                            });
+                            method.Parameters.Add(new Parameter(param.Name, Enum.Parse<Model.Enums.ParameterIn>(param.In, true), VariableExtensions.ToTypeScriptVariable(refName, param.Schema.Format), param.Schema.Items?.Reference));
                         }
 
                     adm.Methods.Add(method);

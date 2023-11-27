@@ -14,6 +14,11 @@
       "commandName": "Project",
       "commandLineArgs": "-u \"http://localhost:5000\" -v \"2\" -o \"./UI/Ionic/apps/ActiFinder.UI.Shared/src/lib\" -e \"./UI/Ionic/apps/ActiFinder.UI.Shared/src/codegen-v2.ts\" -c \"./UI/Ionic/apps/ActiFinder.UI.Shared/caching-instructions.txt\"",
       "workingDirectory": "D:\\P\\R\\Apstory\\ActiFinder_2.0"
+    },
+    "NLA Integrationv1": {
+      "commandName": "Project",
+      "commandLineArgs": "-u \"https://localhost:7109\" -v \"1\" -g \"Integrationv1\" -o \"./UI/Bwl.Ibis.Cloud.UI.Ionic.Pwa/src/app\"",
+      "workingDirectory": "D:\\P\\R\\Apstory\\bwl-ibis-cloud\\src\\Bwl.Ibis.Cloud"
     }
   }
 }

@@ -119,6 +119,13 @@ namespace Apstory.TypescriptCodeGen.Swagger.Extractors
 
                             method.ResponseParameter = new Parameter(refName.Replace("[]", "s"), Model.Enums.ParameterIn.Body, VariableExtensions.ToTypeScriptVariable(refName, entry.Schema.Format), string.Empty);
                         }
+                        else
+                        {
+                            if (swagMethodInfo.OperationId.StartsWith("Download"))
+                            {
+                                method.ResponseParameter = new Parameter("Blob", Model.Enums.ParameterIn.Body, "File", string.Empty);
+                            }
+                        }
                     }
 
                     if (swagMethodInfo.Parameters is not null)

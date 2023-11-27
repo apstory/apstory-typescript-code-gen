@@ -37,6 +37,9 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
                 string methodStr = string.Empty;
                 foreach (var method in model.Methods)
                 {
+                    if (method.ResponseParameter.Type.Contains("BinaryData"))
+                        continue;
+
                     var url = method.Path;
                     var timeoutCacheToApply = allCachesToApply.Where(s => s.GetType() == typeof(TimeoutCachingInstruction))
                                                               .Cast<TimeoutCachingInstruction>()
@@ -45,7 +48,7 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
                     //Setup the functions return parameters
                     var responseParam = GetResponseParameter(method.ResponseParameter);
                     var responseImport = GetParameterImport(method.ResponseParameter);
-                    if (!importStr.Contains(responseImport))
+                    if (!importStr.Contains(responseImport) && !method.ResponseParameter.Type.Equals("File"))
                         importStr += responseImport;
 
                     //Setup the functions incoming parameters
@@ -118,7 +121,16 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
 
                     methodStr += $"\tpublic async {method.Name}({methodParameters}): Promise{responseParam} {{{Environment.NewLine}";
                     methodStr += $"\t\tconst url = `${{this.baseService.apiUrl}}{url}{queryParameters}`;{Environment.NewLine}";
-                    methodStr += $"\t\treturn await this.baseService.http{httpMethod}{httpUnAuthed}{responseParam}(url{postParams}, timeout);{Environment.NewLine}";
+
+                    if (method.HttpMethod == Model.Enums.HttpMethod.Get && responseParam == "<File>")
+                    {
+                        methodStr += $"\t\tconst response = await this.baseService.httpGetBlob(url, timeout);{Environment.NewLine}";
+                        methodStr += $"\t\treturn new File([response], `{method.Name}`, {{ type: response.type }});{Environment.NewLine}";
+                    }
+                    else
+                        methodStr += $"\t\treturn await this.baseService.http{httpMethod}{httpUnAuthed}{responseParam}(url{postParams}, timeout);{Environment.NewLine}";
+
+
                     methodStr += $"\t}}{Environment.NewLine}";
                     methodStr += $"{Environment.NewLine}";
                 }
@@ -129,7 +141,7 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
 
                 if (cacheToApply is not null)
                     importStr += $"import {{ Cacheable, CacheCategory, CacheExpireCategory }} from './../../../caching/cachable-decorator';{Environment.NewLine}";
-                
+
                 typescriptModel = typescriptModel.Replace("#VERSION#", $"'{_version}'");
                 typescriptModel = typescriptModel.Replace("#METHODS#", methodStr);
                 typescriptModel = typescriptModel.Replace("#IMPORTS#", importStr);

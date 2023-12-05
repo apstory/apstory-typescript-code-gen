@@ -37,7 +37,7 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
                 string methodStr = string.Empty;
                 foreach (var method in model.Methods)
                 {
-                    if (method.ResponseParameter.Type.Contains("BinaryData"))
+                    if (method.ResponseParameter != null && method.ResponseParameter.Type.Contains("BinaryData"))
                         continue;
 
                     var url = method.Path;

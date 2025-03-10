@@ -8,12 +8,30 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>Apstory.TypescriptCodeGen.Swagger</ToolCommandName>
     <PackageOutputPath>./nupkg</PackageOutputPath>
+    <Title>Apstory.TypescriptCodeGen.Swagger</Title>
+    <Authors>Apstory</Authors>
+    <Company>Apstory</Company>
+    <Description>Typescript code generator, generating typescript models and api service calls from a swagger.json file</Description>
+    <Copyright>Apstory</Copyright>
+    <PackageProjectUrl>https://github.com/apstory/apstory-typescript-code-gen</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/apstory/apstory-typescript-code-gen</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <Folder Include="Extractor\" />
     <Folder Include="Generator\" />
     <Folder Include="Model\Enums\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
@@ -37,6 +55,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="icon.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
     <None Update="Template\TypescriptApiService.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

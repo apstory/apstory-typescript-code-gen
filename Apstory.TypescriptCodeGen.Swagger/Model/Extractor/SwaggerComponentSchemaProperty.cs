@@ -12,5 +12,6 @@ namespace Apstory.TypescriptCodeGen.Swagger.Model.Extractor
         public string Reference { get; set; }
 
         public SwaggerComponentSchemaProperty Items { get; set; }
+        public SwaggerComponentSchemaProperty AdditionalProperties { get; set; }
     }
 }

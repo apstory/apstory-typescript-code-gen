@@ -47,6 +47,32 @@ namespace Apstory.TypescriptCodeGen.Swagger.Extractors
                         isArray = true;
                     }
 
+                    if (varType == "object")
+                    {
+                        bool isSubValueArray = false;
+                        varType = swagPropKvp.Value?.AdditionalProperties.Reference ?? swagPropKvp.Value.AdditionalProperties.Type;
+                        if (varType.IndexOf("/") > 0)
+                            varType = varType.Substring(varType.LastIndexOf("/") + 1);
+
+                        if (swagPropKvp.Value.AdditionalProperties.Type == "array")
+                        {
+                            varType = swagPropKvp.Value.AdditionalProperties.Items?.Reference ?? swagPropKvp.Value.AdditionalProperties.Type;
+                            if (varType.IndexOf("/") > 0)
+                                varType = varType.Substring(varType.LastIndexOf("/") + 1);
+
+                            isSubValueArray = true;
+                        }
+                        
+                        cdm.Variables.Add(new Variable(swagPropKvp.Key, "Dictionary", swagPropKvp.Value.Format, swagPropKvp.Value.Nullable, isArray) { 
+                            SubVariables = new List<Variable>() {
+                                new Variable(string.Empty, "string", string.Empty, false, false),
+                                new Variable(string.Empty, varType, string.Empty, false, isSubValueArray)
+                            }
+                        });
+
+                        continue;
+                    }
+
                     cdm.Variables.Add(new Variable(swagPropKvp.Key, varType, swagPropKvp.Value.Format, swagPropKvp.Value.Nullable, isArray));
                 }
 

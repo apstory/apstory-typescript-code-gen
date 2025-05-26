@@ -25,5 +25,7 @@ namespace Apstory.TypescriptCodeGen.Swagger.Model
             this.Nullable = nullable;
             this.IsArray = isArray;
         }
+
+        public List<Variable> SubVariables { get; set; }
     }
 }

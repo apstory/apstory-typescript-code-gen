@@ -30,10 +30,24 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
 
                 string importStr = string.Empty;
                 string varStr = string.Empty;
+                var possibleImportVariables = new List<Variable>(model.Variables);
                 foreach (var variable in model.Variables)
                 {
+                    if (variable.Type.Equals("Dictionary", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var indexVariable = variable.SubVariables.FirstOrDefault();
+                        var valueVariable = variable.SubVariables.LastOrDefault();
+                        varStr += $"    {variable.Name}: Map<{indexVariable.Type}, {valueVariable.Type}{(valueVariable.IsArray ? "[]" : "")}>;{Environment.NewLine}";
+                        
+                        possibleImportVariables.Add(indexVariable);
+                        possibleImportVariables.Add(valueVariable);
+                    }
+                    else
+                        varStr += $"    {variable.Name}: {variable.Type}{(variable.IsArray ? "[]" : "")};{Environment.NewLine}";
+                }
 
-                    varStr += $"    {variable.Name}: {variable.Type}{(variable.IsArray ? "[]" : "")};{Environment.NewLine}";
+                foreach(var variable in possibleImportVariables)
+                {
                     if (!isKnownType(variable.Type))
                     {
                         var newImportStr = string.Empty;
@@ -63,7 +77,8 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
 
         public bool isKnownType(string type)
         {
-            if (type == "number" || type == "Date" || type == "string" || type == "boolean")
+            var lwrType = type.ToLowerInvariant();
+            if (lwrType == "number" || lwrType == "Date" || lwrType == "string" || lwrType == "boolean" || lwrType == "dictionary")
                 return true;
 
             return false;

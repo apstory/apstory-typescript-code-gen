@@ -78,7 +78,7 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
         public bool isKnownType(string type)
         {
             var lwrType = type.ToLowerInvariant();
-            if (lwrType == "number" || lwrType == "Date" || lwrType == "string" || lwrType == "boolean" || lwrType == "dictionary")
+            if (lwrType == "number" || lwrType == "date" || lwrType == "string" || lwrType == "boolean" || lwrType == "dictionary")
                 return true;
 
             return false;

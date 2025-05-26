@@ -48,7 +48,7 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
 
                 foreach(var variable in possibleImportVariables)
                 {
-                    if (!isKnownType(variable.Type))
+                    if (!isKnownType(variable.Type) && variable.Type != model.Name)
                     {
                         var newImportStr = string.Empty;
                         var namespaceStr = string.IsNullOrWhiteSpace(variable.Namespace) ? string.Empty : $"/{variable.Namespace.ToLower()}";

@@ -55,7 +55,7 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
                         if (variable.Type.EndsWith("Id"))
                             newImportStr = $"import {{ {variable.Type} }} from '..{namespaceStr}/enums/{variable.Type.ToKebabCase()}';";
                         else
-                            newImportStr = $"import {{ {variable.Type} }} from '..{namespaceStr}/{variable.Type.ToKebabCase()}';";
+                            newImportStr = $"import {{ {variable.Type} }} from '.{namespaceStr}/{variable.Type.ToKebabCase()}';";
 
                         if (!importStr.Contains(newImportStr))
                             importStr += newImportStr + Environment.NewLine;

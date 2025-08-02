@@ -13,7 +13,7 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
             _exportFile = exportFile;
         }
 
-        public async Task Generate(List<ClassDefinitionModel> classModels)
+        public async Task Generate(List<ClassDefinitionModel> classModels, string appendModel)
         {
             foreach (var model in classModels)
             {
@@ -38,7 +38,7 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
                         var indexVariable = variable.SubVariables.FirstOrDefault();
                         var valueVariable = variable.SubVariables.LastOrDefault();
                         varStr += $"    {variable.Name}: Map<{indexVariable.Type}, {valueVariable.Type}{(valueVariable.IsArray ? "[]" : "")}>;{Environment.NewLine}";
-                        
+
                         possibleImportVariables.Add(indexVariable);
                         possibleImportVariables.Add(valueVariable);
                     }
@@ -46,7 +46,11 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
                         varStr += $"    {variable.Name}: {variable.Type}{(variable.IsArray ? "[]" : "")};{Environment.NewLine}";
                 }
 
-                foreach(var variable in possibleImportVariables)
+                if (!string.IsNullOrWhiteSpace(appendModel))
+                    varStr += $"    {appendModel};{Environment.NewLine}";
+
+
+                foreach (var variable in possibleImportVariables)
                 {
                     if (!isKnownType(variable.Type) && variable.Type != model.Name)
                     {

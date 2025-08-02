@@ -32,6 +32,8 @@ namespace Apstory.TypescriptCodeGen.Swagger
               "-e |--ExportFile <ExportFile>", "A .ts file that lists all generated files", CommandOptionType.SingleValue);
             CommandOption cachingFile = commandLineApplication.Option(
               "-c |--CachingFile <CachingFile>", "A .txt file that lists all caching instructions in the format: '[Service Name]:[Version]:[Caching Category]:[Duration In Minutes]?:[Caches To Expire on Post/Put/Delete]'", CommandOptionType.SingleValue);
+            CommandOption appendModel = commandLineApplication.Option(
+              "-am |--AppendModel <TextToAppend>", "Appends generated typescript models with supplied value (Useful for offline fields)", CommandOptionType.SingleValue);
 
             commandLineApplication.HelpOption("-? | -h | --help");
 
@@ -43,7 +45,7 @@ namespace Apstory.TypescriptCodeGen.Swagger
                 Console.WriteLine($"OutputDirectory: {outputDirectory.Value()}");
                 Console.WriteLine($"ExportFile: {exportFile.Value()}");
 
-                await RunCodeGen(url.Value(), group.Value(), version.Value(), outputDirectory.Value(), exportFile.Value(), cachingFile.Value());
+                await RunCodeGen(url.Value(), group.Value(), version.Value(), outputDirectory.Value(), exportFile.Value(), cachingFile.Value(), appendModel.Value());
 
                 return 0;
             });
@@ -51,7 +53,7 @@ namespace Apstory.TypescriptCodeGen.Swagger
             commandLineApplication.Execute(args);
         }
 
-        public static async Task RunCodeGen(string url, string group, string version, string outputDirectory, string exportFile, string cachingFile)
+        public static async Task RunCodeGen(string url, string group, string version, string outputDirectory, string exportFile, string cachingFile, string appendModel)
         {
             if (string.IsNullOrEmpty(group))
                 group = $"v{version}";
@@ -72,7 +74,7 @@ namespace Apstory.TypescriptCodeGen.Swagger
 
 
                     var tmg = new TypescriptModelGenerator(Path.Join(outputDirectory, "models", "gen"), exportFile);
-                    await tmg.Generate(se.GetClassModels());
+                    await tmg.Generate(se.GetClassModels(), appendModel);
 
                     var tasg = new TypescriptApiServiceGenerator(Path.Join(outputDirectory, "services", "gen", "api", group), group, version, exportFile);
                     await tasg.Generate(se.GetApiModels(), cachingInstructions);

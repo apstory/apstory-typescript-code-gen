@@ -72,6 +72,12 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
                         if (!importStr.Contains(newImportStr))
                             importStr += newImportStr;
 
+                        // Replace path parameters with camelCase version before generic URL replacement
+                        if (param.In == Model.Enums.ParameterIn.Path)
+                        {
+                            url = url.Replace($"{{{param.Name}}}", $"{{{param.Name.ToCamelCase()}}}");
+                        }
+
                         if (param.Type == "Date")
                         {
                             url = url.Replace($"{{{param.Name.ToCamelCase()}}}", $"{{await this.baseService.getDateString({param.Name.ToCamelCase()})}}");

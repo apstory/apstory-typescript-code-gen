@@ -75,7 +75,10 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
                         // Replace path parameters with camelCase version before generic URL replacement
                         if (param.In == Model.Enums.ParameterIn.Path)
                         {
-                            url = url.Replace($"{{{param.Name}}}", $"{{{param.Name.ToCamelCase()}}}");
+                            // Use case-insensitive replacement to handle PascalCase in URL path and camelCase in param.Name
+                            var pattern = $"{{{param.Name}}}";
+                            var regex = new System.Text.RegularExpressions.Regex(pattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                            url = regex.Replace(url, $"{{{param.Name.ToCamelCase()}}}");
                         }
 
                         if (param.Type == "Date")

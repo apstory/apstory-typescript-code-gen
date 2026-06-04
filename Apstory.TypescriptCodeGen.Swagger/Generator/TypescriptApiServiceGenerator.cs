@@ -212,15 +212,18 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
                 else
                     retQueryParameters += "&";
 
+                // The query string key keeps the API's casing (param.Name), but the variable
+                // references must match the camelCase method parameters.
+                var paramVar = param.Name.ToCamelCase();
                 if (param.Type.EndsWith("[]"))
-                    retQueryParameters += $"${{this.baseService.createQueryParams({param.Name}, '{param.Name}')}}";
+                    retQueryParameters += $"${{this.baseService.createQueryParams({paramVar}, '{param.Name}')}}";
                 else
                 {
-                    var dateFriendlyParam = param.Name;
+                    var dateFriendlyParam = paramVar;
                     if (param.Type == "Date")
-                        dateFriendlyParam = $"await this.baseService.getDateString({param.Name})";
+                        dateFriendlyParam = $"await this.baseService.getDateString({paramVar})";
 
-                    retQueryParameters += $"{param.Name}=${{(!{param.Name} ? '' : encodeURIComponent({dateFriendlyParam}))}}";
+                    retQueryParameters += $"{param.Name}=${{(!{paramVar} ? '' : encodeURIComponent({dateFriendlyParam}))}}";
                 }
             }
 

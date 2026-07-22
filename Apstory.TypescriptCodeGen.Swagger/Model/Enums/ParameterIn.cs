@@ -6,6 +6,7 @@
         Path,
         Query,
         Body,
-        Bearer
+        Bearer,
+        Form
     }
 }

@@ -54,8 +54,9 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
                     //Setup the functions incoming parameters
                     var methodParameters = string.Empty;
                     foreach (var param in method.Parameters.Where(s => s.In == Model.Enums.ParameterIn.Path ||
-                                                                       s.In == Model.Enums.ParameterIn.Body ||
-                                                                       s.In == Model.Enums.ParameterIn.Query))
+                                                                        s.In == Model.Enums.ParameterIn.Body ||
+                                                                        s.In == Model.Enums.ParameterIn.Query ||
+                                                                        s.In == Model.Enums.ParameterIn.Form))
                     {
                         if (param.Name == "version")
                             continue;
@@ -68,9 +69,12 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
 
                         methodParameters += $"{param.Name.ToCamelCase()}: {param.Type}";
 
-                        var newImportStr = GetParameterImport(param);
-                        if (!importStr.Contains(newImportStr))
-                            importStr += newImportStr;
+                        if (param.Type != "File" && param.Type != "File[]")
+                        {
+                            var newImportStr = GetParameterImport(param);
+                            if (!importStr.Contains(newImportStr))
+                                importStr += newImportStr;
+                        }
 
                         // Replace path parameters with camelCase version before generic URL replacement
                         if (param.In == Model.Enums.ParameterIn.Path)
@@ -98,13 +102,21 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
                     // Setup http call: 'await baseService.http___(URL,DATA);
                     var httpMethod = method.HttpMethod.ToString();
                     var httpUnAuthed = method.Authenticated ? string.Empty : "UnAuthenticated";
+                    var formParams = method.Parameters.Where(s => s.In == Model.Enums.ParameterIn.Form).ToList();
                     var postParams = string.Empty;
-                    var postData = method.Parameters.FirstOrDefault(s => s.In == Model.Enums.ParameterIn.Body);
-                    if (postData is not null)
-                        postParams = $", {postData.Name.ToCamelCase()}";
-                    else if (method.HttpMethod == Model.Enums.HttpMethod.Post || method.HttpMethod == Model.Enums.HttpMethod.Put)
-                        //All post methods require a body, Supply an empty one
-                        postParams = $", {{ }}";
+                    if (formParams.Any())
+                    {
+                        postParams = ", formData";
+                    }
+                    else
+                    {
+                        var postData = method.Parameters.FirstOrDefault(s => s.In == Model.Enums.ParameterIn.Body);
+                        if (postData is not null)
+                            postParams = $", {postData.Name.ToCamelCase()}";
+                        else if (method.HttpMethod == Model.Enums.HttpMethod.Post || method.HttpMethod == Model.Enums.HttpMethod.Put)
+                            //All post methods require a body, Supply an empty one
+                            postParams = $", {{ }}";
+                    }
 
                     url = url.Replace("{version}", "{this.version}").Replace("{", "${encodeURIComponent(").Replace("}", ")}");
                     if (timeoutCacheToApply is not null)
@@ -130,6 +142,21 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
 
                     methodStr += $"\tpublic async {method.Name}({methodParameters}): Promise{responseParam} {{{Environment.NewLine}";
                     methodStr += $"\t\tconst url = `${{this.baseService.apiUrl}}{url}{queryParameters}`;{Environment.NewLine}";
+
+                    if (formParams.Any())
+                    {
+                        methodStr += $"\t\tconst formData = new FormData();{Environment.NewLine}";
+                        foreach (var formParam in formParams)
+                        {
+                            var paramName = formParam.Name.ToCamelCase();
+                            if (formParam.Type == "File")
+                                methodStr += $"\t\tformData.append('{formParam.Name}', {paramName}, {paramName}.name);{Environment.NewLine}";
+                            else if (formParam.Type == "File[]")
+                                methodStr += $"\t\tfor (const f of {paramName}) formData.append('{formParam.Name}', f, f.name);{Environment.NewLine}";
+                            else
+                                methodStr += $"\t\tformData.append('{formParam.Name}', {paramName});{Environment.NewLine}";
+                        }
+                    }
 
                     if (method.HttpMethod == Model.Enums.HttpMethod.Get && responseParam == "<File>")
                     {

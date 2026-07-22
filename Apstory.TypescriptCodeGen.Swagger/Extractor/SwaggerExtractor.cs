@@ -128,7 +128,29 @@ namespace Apstory.TypescriptCodeGen.Swagger.Extractors
                             method.Parameters.Add(new Parameter(refName.Replace("[]", "s"), Model.Enums.ParameterIn.Body, VariableExtensions.ToTypeScriptVariable(refName, entry.Schema.Format), string.Empty));
                         }
 
-                        //TODO: "multipart/form-data"
+                        else if (swagMethodInfo.RequestBody.Content.ContainsKey("multipart/form-data"))
+                        {
+                            var entry = swagMethodInfo.RequestBody.Content["multipart/form-data"];
+                            if (entry.Schema.Properties is not null)
+                            {
+                                foreach (var prop in entry.Schema.Properties)
+                                {
+                                    if (prop.Value.Format == "binary")
+                                    {
+                                        method.Parameters.Add(new Parameter(prop.Key, Model.Enums.ParameterIn.Form, "File", string.Empty));
+                                    }
+                                    else if (prop.Value.Type == "array" && prop.Value.Items?.Format == "binary")
+                                    {
+                                        method.Parameters.Add(new Parameter(prop.Key, Model.Enums.ParameterIn.Form, "File[]", string.Empty));
+                                    }
+                                    else
+                                    {
+                                        var type = prop.Value.Type ?? prop.Value.Reference?.Substring(prop.Value.Reference.LastIndexOf("/") + 1) ?? "string";
+                                        method.Parameters.Add(new Parameter(prop.Key, Model.Enums.ParameterIn.Form, VariableExtensions.ToTypeScriptVariable(type, prop.Value.Format), string.Empty));
+                                    }
+                                }
+                            }
+                        }
                     }
 
                     if (swagMethodInfo.Responses is not null)

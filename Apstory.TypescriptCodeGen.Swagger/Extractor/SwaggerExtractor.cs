@@ -92,6 +92,12 @@ namespace Apstory.TypescriptCodeGen.Swagger.Extractors
             {
                 foreach (var swagMethodInfo in swagPathKvp.Value.GetAll())
                 {
+                    if (string.IsNullOrWhiteSpace(swagMethodInfo.OperationId))
+                    {
+                        Console.WriteLine($"Warning: Skipping Swagger path '{swagPathKvp.Key}' because its operationId is missing.");
+                        continue;
+                    }
+
                     var controllerName = swagMethodInfo.Tags[0];
                     var adm = retApiDefinitionModels.FirstOrDefault(s => s.ControllerName == controllerName);
                     if (adm is null)

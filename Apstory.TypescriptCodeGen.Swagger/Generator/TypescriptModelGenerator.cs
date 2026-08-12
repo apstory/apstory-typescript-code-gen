@@ -33,17 +33,18 @@ namespace Apstory.TypescriptCodeGen.Swagger.Generator
                 var possibleImportVariables = new List<Variable>(model.Variables);
                 foreach (var variable in model.Variables)
                 {
+                    var nullableMarker = variable.Nullable ? "?" : "";
                     if (variable.Type.Equals("Dictionary", StringComparison.OrdinalIgnoreCase))
                     {
                         var indexVariable = variable.SubVariables.FirstOrDefault();
                         var valueVariable = variable.SubVariables.LastOrDefault();
-                        varStr += $"    {variable.Name}: Map<{indexVariable.Type}, {valueVariable.Type}{(valueVariable.IsArray ? "[]" : "")}>;{Environment.NewLine}";
+                        varStr += $"    {variable.Name}{nullableMarker}: Map<{indexVariable.Type}, {valueVariable.Type}{(valueVariable.IsArray ? "[]" : "")}>;{Environment.NewLine}";
 
                         possibleImportVariables.Add(indexVariable);
                         possibleImportVariables.Add(valueVariable);
                     }
                     else
-                        varStr += $"    {variable.Name}: {variable.Type}{(variable.IsArray ? "[]" : "")};{Environment.NewLine}";
+                        varStr += $"    {variable.Name}{nullableMarker}: {variable.Type}{(variable.IsArray ? "[]" : "")};{Environment.NewLine}";
                 }
 
                 if (!string.IsNullOrWhiteSpace(appendModel))
